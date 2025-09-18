@@ -1,0 +1,99 @@
+@import "tailwindcss";         
+@import "tw-animate-css";      
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+
+  --radius: 0.625rem;
+  --background: #ffffff;
+  --foreground: #000000;
+
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+
+  --secondary: #000000;
+  --secondary-foreground: #ffffff;
+
+  --accent: #71FF71;
+  --accent-foreground: #000000;
+  --muted: #ffffff;
+  --muted-foreground: rgba(0,0,0,0.6);
+
+  --card: var(--background);
+  --card-foreground: var(--foreground);
+  --popover: var(--background);
+  --popover-foreground: var(--foreground);
+
+  --destructive: #000000; 
+  --border: rgba(0,0,0,0.1);
+  --input: rgba(0,0,0,0.1);
+  --ring: var(--accent);
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--secondary);
+  --sidebar-primary-foreground: var(--primary);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #ffffff;
+
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+
+  --secondary: #ffffff;
+  --secondary-foreground: #000000;
+
+  --accent: #71FF71;
+  --accent-foreground: #000000;
+
+  --muted: #000000;
+  --muted-foreground: rgba(255,255,255,0.7);
+
+  --card: var(--background);
+  --card-foreground: var(--foreground);
+  --popover: var(--background);
+  --popover-foreground: var(--foreground);
+
+  --destructive: #ffffff;
+  --border: rgba(255,255,255,0.15);
+  --input: rgba(255,255,255,0.15);
+  --ring: var(--accent);
+
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--secondary);
+  --sidebar-primary-foreground: var(--primary);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+@layer base {
+  *, ::before, ::after {
+    @apply border-border;
+  }
+   body {
+   @apply bg-background text-foreground min-h-screen;
+  }
+}
