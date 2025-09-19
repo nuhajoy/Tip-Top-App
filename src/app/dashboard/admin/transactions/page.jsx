@@ -2,34 +2,45 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function TransactionsPage() {
   const [tips, setTips] = useState([]);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [token, setToken] = useState(null);
 
   const [selectedTip, setSelectedTip] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
   useEffect(() => {
-    let token = null;
-    if (typeof window !== "undefined") {
-      token = localStorage.getItem("auth_token");
+    function syncToken() {
+      setToken(localStorage.getItem("auth_token"));
     }
+    if (typeof window !== "undefined") {
+      syncToken();
+      window.addEventListener("storage", syncToken);
+      return () => window.removeEventListener("storage", syncToken);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!token) {
       setError("No admin token found. Please log in again.");
       setLoading(false);
@@ -37,6 +48,7 @@ export default function TransactionsPage() {
     }
 
     const fetchTransactions = async () => {
+      setLoading(true);
       try {
         const tipsRes = await axios.get(
           "http://127.0.0.1:8000/api/admin/reports/tips?per_page=1000",
@@ -59,6 +71,7 @@ export default function TransactionsPage() {
           );
         }
         setPayments(paymentsData.data || []);
+        setError(null);
       } catch (err) {
         setError("Failed to fetch transactions. Please try again.");
       } finally {
@@ -67,14 +80,25 @@ export default function TransactionsPage() {
     };
 
     fetchTransactions();
-  }, []);
+  }, [token]);
+
+  const handleRetry = () => {
+    if (typeof window !== "undefined") {
+      setToken(localStorage.getItem("auth_token"));
+    }
+  };
 
   if (loading)
     return <p className="text-center py-10">Loading transactions...</p>;
-  if (error) return <p className="text-center text-red-500 py-10">{error}</p>;
-
-  // ...rest of component unchanged...
-
+  if (error)
+    return (
+      <div className="text-center py-10">
+        <p className="text-red-500">{error}</p>
+        <Button onClick={handleRetry} className="mt-2">
+          Retry
+        </Button>
+      </div>
+    );
 
   return (
     <div className="space-y-8">

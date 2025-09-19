@@ -18,12 +18,19 @@ const useProviderListState = () => {
   const [error, setError] = useState(null);
   const [token, setToken] = useState(null);
 
+  // Listen for token changes and update state
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    function syncToken() {
       setToken(localStorage.getItem("auth_token"));
+    }
+    if (typeof window !== "undefined") {
+      syncToken();
+      window.addEventListener("storage", syncToken);
+      return () => window.removeEventListener("storage", syncToken);
     }
   }, []);
 
+  // Refetch providers when token changes
   useEffect(() => {
     if (!token) {
       setError("No auth token found. Please log in.");
@@ -53,6 +60,7 @@ const useProviderListState = () => {
         }));
 
         setProviders(formatted);
+        setError(null);
       } catch (err) {
         setError("Failed to fetch providers.");
       } finally {
@@ -62,8 +70,6 @@ const useProviderListState = () => {
 
     fetchProviders();
   }, [token]);
-
-  // ...handleAction unchanged, but use token from state...
 
   const handleAction = async (provider, action) => {
     if (!provider.id) return;
@@ -121,10 +127,10 @@ const useProviderListState = () => {
     loading,
     error,
     handleAction,
+    token,
+    setToken,
   };
 };
-
-// ...ProvidersTable and ProvidersSection unchanged...
 
 const ProvidersTable = ({
   providers,
@@ -324,6 +330,8 @@ export default function ProvidersSection() {
     loading,
     error,
     handleAction,
+    token,
+    setToken,
   } = useProviderListState();
 
   const approvedCount = filteredProviders.filter(
@@ -339,6 +347,13 @@ export default function ProvidersSection() {
     { title: "Suspended", value: suspendedCount },
     { title: "Pending", value: pendingCount },
   ];
+
+  // Retry button for manual token refresh
+  const handleRetry = () => {
+    if (typeof window !== "undefined") {
+      setToken(localStorage.getItem("auth_token"));
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -370,7 +385,12 @@ export default function ProvidersSection() {
         {loading ? (
           <p className="text-[var(--muted-foreground)]">Loading providers...</p>
         ) : error ? (
-          <p className="text-[var(--destructive)]">{error}</p>
+          <div>
+            <p className="text-[var(--destructive)]">{error}</p>
+            <Button onClick={handleRetry} className="mt-2">
+              Retry
+            </Button>
+          </div>
         ) : (
           <ProvidersTable
             providers={filteredProviders}

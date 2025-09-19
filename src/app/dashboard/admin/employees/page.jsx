@@ -17,8 +17,13 @@ const useEmployeeListState = () => {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    function syncToken() {
       setToken(localStorage.getItem("auth_token"));
+    }
+    if (typeof window !== "undefined") {
+      syncToken();
+      window.addEventListener("storage", syncToken);
+      return () => window.removeEventListener("storage", syncToken);
     }
   }, []);
 
@@ -49,8 +54,8 @@ const useEmployeeListState = () => {
         }
 
         setEmployees(data.data || []);
+        setError(null);
       } catch (err) {
-        console.error("Error fetching employees:", err.response || err);
         setError("Failed to fetch employees.");
       } finally {
         setLoading(false);
@@ -77,9 +82,7 @@ const useEmployeeListState = () => {
           e.id === id ? { ...e, is_active: true, ...res.data.employee } : e
         )
       );
-    } catch (err) {
-      console.error("Failed to activate employee:", err.response || err);
-    }
+    } catch (err) {}
   };
 
   const handleDeactivate = async (id) => {
@@ -99,9 +102,7 @@ const useEmployeeListState = () => {
           e.id === id ? { ...e, is_active: false, ...res.data.employee } : e
         )
       );
-    } catch (err) {
-      console.error("Failed to deactivate employee:", err.response || err);
-    }
+    } catch (err) {}
   };
 
   const handleSuspend = async (id) => {
@@ -121,9 +122,7 @@ const useEmployeeListState = () => {
           e.id === id ? { ...e, is_suspended: true, ...res.data.employee } : e
         )
       );
-    } catch (err) {
-      console.error("Failed to suspend employee:", err.response || err);
-    }
+    } catch (err) {}
   };
 
   const handleUnsuspend = async (id) => {
@@ -143,9 +142,7 @@ const useEmployeeListState = () => {
           e.id === id ? { ...e, is_suspended: false, ...res.data.employee } : e
         )
       );
-    } catch (err) {
-      console.error("Failed to unsuspend employee:", err.response || err);
-    }
+    } catch (err) {}
   };
 
   const filteredEmployees = !searchQuery
@@ -168,6 +165,8 @@ const useEmployeeListState = () => {
     handleDeactivate,
     handleSuspend,
     handleUnsuspend,
+    token,
+    setToken,
   };
 };
 
@@ -329,6 +328,8 @@ export default function EmployeesSection() {
     handleDeactivate,
     handleSuspend,
     handleUnsuspend,
+    token,
+    setToken,
   } = useEmployeeListState();
 
   const activeCount = filteredEmployees.filter((e) => e.is_active).length;
@@ -341,6 +342,12 @@ export default function EmployeesSection() {
     { title: "Inactive", value: inactiveCount },
     { title: "Suspended", value: suspendedCount },
   ];
+
+  const handleRetry = () => {
+    if (typeof window !== "undefined") {
+      setToken(localStorage.getItem("auth_token"));
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -372,7 +379,12 @@ export default function EmployeesSection() {
         {loading ? (
           <p className="text-[var(--muted-foreground)]">Loading employees...</p>
         ) : error ? (
-          <p className="text-[var(--destructive)]">{error}</p>
+          <div>
+            <p className="text-[var(--destructive)]">{error}</p>
+            <Button onClick={handleRetry} className="mt-2">
+              Retry
+            </Button>
+          </div>
         ) : (
           <EmployeesTable
             employees={filteredEmployees}
