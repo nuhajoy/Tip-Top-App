@@ -14,8 +14,13 @@ const useEmployeeListState = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [token, setToken] = useState(null);
 
-  const token = localStorage.getItem("auth_token");
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setToken(localStorage.getItem("auth_token"));
+    }
+  }, []);
 
   useEffect(() => {
     if (!token) {
@@ -143,13 +148,10 @@ const useEmployeeListState = () => {
     }
   };
 
-
   const filteredEmployees = !searchQuery
     ? employees
     : employees.filter((e) =>
-        (e.unique_id || "")
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
+        (e.unique_id || "").toLowerCase().includes(searchQuery.toLowerCase())
       );
 
   return {
@@ -191,16 +193,21 @@ const EmployeesTable = ({
       <table className="min-w-full divide-y border-[var(--border)]">
         <thead className="bg-[var(--muted)]">
           <tr>
-            {["Unique ID", "Provider ID", "Active", "Verified", "Suspended", "Actions"].map(
-              (title) => (
-                <th
-                  key={title}
-                  className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider"
-                >
-                  {title}
-                </th>
-              )
-            )}
+            {[
+              "Unique ID",
+              "Provider ID",
+              "Active",
+              "Verified",
+              "Suspended",
+              "Actions",
+            ].map((title) => (
+              <th
+                key={title}
+                className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider"
+              >
+                {title}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody className="bg-[var(--background)] divide-y border-[var(--border)]">
@@ -225,8 +232,12 @@ const EmployeesTable = ({
                     )
                   }
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">{employee.unique_id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{employee.service_provider_id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {employee.unique_id}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {employee.service_provider_id}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {employee.is_active ? "Yes" : "No"}
                   </td>
@@ -248,10 +259,15 @@ const EmployeesTable = ({
                 </tr>
               );
 
-
               const details = (
-                <tr key={`${employee.id}-details`} className="bg-[var(--muted)]">
-                  <td colSpan="6" className="p-4 text-sm text-[var(--muted-foreground)]">
+                <tr
+                  key={`${employee.id}-details`}
+                  className="bg-[var(--muted)]"
+                >
+                  <td
+                    colSpan="6"
+                    className="p-4 text-sm text-[var(--muted-foreground)]"
+                  >
                     <div className="flex space-x-2 mt-4">
                       {employee.is_active ? (
                         <Button

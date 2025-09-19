@@ -26,7 +26,10 @@ export default function TransactionsPage() {
   const [selectedPayment, setSelectedPayment] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
+    let token = null;
+    if (typeof window !== "undefined") {
+      token = localStorage.getItem("auth_token");
+    }
     if (!token) {
       setError("No admin token found. Please log in again.");
       setLoading(false);
@@ -57,7 +60,6 @@ export default function TransactionsPage() {
         }
         setPayments(paymentsData.data || []);
       } catch (err) {
-        console.error(err.response || err);
         setError("Failed to fetch transactions. Please try again.");
       } finally {
         setLoading(false);
@@ -70,6 +72,9 @@ export default function TransactionsPage() {
   if (loading)
     return <p className="text-center py-10">Loading transactions...</p>;
   if (error) return <p className="text-center text-red-500 py-10">{error}</p>;
+
+  // ...rest of component unchanged...
+
 
   return (
     <div className="space-y-8">

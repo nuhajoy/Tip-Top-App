@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import axios from "axios";
 
-export default function VerifyPage() {
+function VerifyPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -48,7 +48,6 @@ export default function VerifyPage() {
           setTimeout(() => router.push("/auth/login"), 2000);
           break;
         } catch (err) {
-          // Try next endpoint if current fails
           continue;
         }
       }
@@ -129,5 +128,13 @@ export default function VerifyPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense>
+      <VerifyPageInner />
+    </Suspense>
   );
 }

@@ -16,8 +16,13 @@ const useProviderListState = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [token, setToken] = useState(null);
 
-  const token = localStorage.getItem("auth_token");
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setToken(localStorage.getItem("auth_token"));
+    }
+  }, []);
 
   useEffect(() => {
     if (!token) {
@@ -29,10 +34,12 @@ const useProviderListState = () => {
     const fetchProviders = async () => {
       setLoading(true);
       try {
-        console.log("Fetching providers...");
-        const res = await axios.get(`${API_BASE}/service-providers?per_page=50`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get(
+          `${API_BASE}/service-providers?per_page=50`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         let data = res.data;
         if (typeof data === "string") {
@@ -45,10 +52,8 @@ const useProviderListState = () => {
           status: p.registration_status === "accepted" ? "Verified" : "Pending",
         }));
 
-        console.log("Providers fetched:", formatted);
         setProviders(formatted);
       } catch (err) {
-        console.error("Error fetching providers:", err.response || err);
         setError("Failed to fetch providers.");
       } finally {
         setLoading(false);
@@ -58,9 +63,11 @@ const useProviderListState = () => {
     fetchProviders();
   }, [token]);
 
+  // ...handleAction unchanged, but use token from state...
+
   const handleAction = async (provider, action) => {
     if (!provider.id) return;
-    if (!token) return console.error("No token found for API call");
+    if (!token) return;
 
     let url = `${API_BASE}/service-providers/${provider.id}`;
     if (action === "approve") url += "/accept";
@@ -71,28 +78,29 @@ const useProviderListState = () => {
     let payload = action === "suspend" ? { reason: "Policy violation" } : {};
 
     try {
-      console.log(`Calling ${action} API for provider ${provider.id}`);
       const res = await axios.post(url, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(`${action} response:`, res.data);
-      
       if (res.data.provider) {
         setProviders((prev) =>
-          prev.map((p) => (p.id === provider.id ? {
-            ...p,
-            ...res.data.provider,
-            status:
-              res.data.provider.registration_status === "accepted"
-                ? "Verified"
-                : p.status === "Pending" && action === "approve"
-                ? "Verified"
-                : p.status
-          } : p))
+          prev.map((p) =>
+            p.id === provider.id
+              ? {
+                  ...p,
+                  ...res.data.provider,
+                  status:
+                    res.data.provider.registration_status === "accepted"
+                      ? "Verified"
+                      : p.status === "Pending" && action === "approve"
+                      ? "Verified"
+                      : p.status,
+                }
+              : p
+          )
         );
       }
     } catch (err) {
-      console.error(`Failed to ${action} provider:`, err.response || err);
+      // handle error
     }
   };
 
@@ -116,6 +124,8 @@ const useProviderListState = () => {
   };
 };
 
+// ...ProvidersTable and ProvidersSection unchanged...
+
 const ProvidersTable = ({
   providers,
   expandedRow,
@@ -125,8 +135,10 @@ const ProvidersTable = ({
   handleAction,
 }) => {
   const getStatusClass = (status) => {
-    if (status === "Verified") return "text-[var(--accent-foreground)] bg-[var(--accent)]";
-    if (status === "Suspended") return "text-[var(--destructive)] bg-[var(--slight-accent)]";
+    if (status === "Verified")
+      return "text-[var(--accent-foreground)] bg-[var(--accent)]";
+    if (status === "Suspended")
+      return "text-[var(--destructive)] bg-[var(--slight-accent)]";
     return "text-[var(--foreground)] bg-[var(--muted)]";
   };
 
@@ -136,26 +148,30 @@ const ProvidersTable = ({
     setExpandedRow(expandedRow === providerId ? null : providerId);
   };
 
-
   return (
     <div className="overflow-x-auto mt-4">
       <table className="min-w-full divide-y border-[var(--border)]">
         <thead className="bg-[var(--muted)]">
           <tr>
-            {["Avatar", "Name", "Type", "Email", "Status", "Actions"].map((title) => (
-              <th
-                key={title}
-                className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider"
-              >
-                {title}
-              </th>
-            ))}
+            {["Avatar", "Name", "Type", "Email", "Status", "Actions"].map(
+              (title) => (
+                <th
+                  key={title}
+                  className="px-6 py-3 text-left text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider"
+                >
+                  {title}
+                </th>
+              )
+            )}
           </tr>
         </thead>
         <tbody className="bg-[var(--background)] divide-y border-[var(--border)]">
           {providers.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-6 py-4 text-center text-sm text-[var(--muted-foreground)]">
+              <td
+                colSpan={6}
+                className="px-6 py-4 text-center text-sm text-[var(--muted-foreground)]"
+              >
                 No service providers found. Try a different search?
               </td>
             </tr>
@@ -217,14 +233,27 @@ const ProvidersTable = ({
                 </tr>
               );
 
-
               const details = (
-                <tr key={`${providerKey}-details`} className="bg-[var(--muted)]">
-                  <td colSpan="6" className="p-4 text-sm text-[var(--muted-foreground)]">
+                <tr
+                  key={`${providerKey}-details`}
+                  className="bg-[var(--muted)]"
+                >
+                  <td
+                    colSpan="6"
+                    className="p-4 text-sm text-[var(--muted-foreground)]"
+                  >
                     <div className="grid grid-cols-2 gap-2">
-                      <p><strong>Description:</strong> {provider.description || "N/A"}</p>
-                      <p><strong>Phone:</strong> {provider.contact_phone || "N/A"}</p>
-                      <p><strong>Tax ID:</strong> {provider.tax_id || "N/A"}</p>
+                      <p>
+                        <strong>Description:</strong>{" "}
+                        {provider.description || "N/A"}
+                      </p>
+                      <p>
+                        <strong>Phone:</strong>{" "}
+                        {provider.contact_phone || "N/A"}
+                      </p>
+                      <p>
+                        <strong>Tax ID:</strong> {provider.tax_id || "N/A"}
+                      </p>
                       {provider.license && (
                         <p>
                           <strong>License:</strong>{" "}
