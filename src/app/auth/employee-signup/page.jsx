@@ -41,83 +41,146 @@ export default function EmployeeSignupPage() {
     }));
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setErrorMessage("");
+  //   setSuccessMessage("");
+  //   setLoading(true);
+
+  //   // Validation
+  //   if (formData.password !== formData.confirmPassword) {
+  //     setErrorMessage("Passwords do not match.");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   if (formData.password.length < 6) {
+  //     setErrorMessage("Password must be at least 6 characters long.");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   if (!formData.employee_code.trim()) {
+  //     setErrorMessage("Employee code is required.");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   const employeeData = {
+  //     employee_code: formData.employee_code,
+  //     first_name: formData.first_name,
+  //     last_name: formData.last_name,
+  //     email: formData.email,
+  //     password: formData.password,
+  //     image_url: formData.image_url,
+  //   };
+
+  //   try {
+  //     const res = await apiService.completeEmployeeRegistration(employeeData);
+
+  //     setSuccessMessage(
+  //       "Registration successful! Please check your email to verify your account."
+  //     );
+  //     toast.success(
+  //       "Registration completed! Check your email for verification."
+  //     );
+
+  //     // Redirect to verification page using token from backend
+  //     if (res.token) {
+  //       setTimeout(() => {
+  //         router.push(`/employees/verify-token?token=${res.token}`);
+  //       }, 2000);
+  //     }
+  //   } catch (err) {
+  //     console.error("Registration error:", err);
+
+  //     let errorMessage = "Something went wrong. Please try again later.";
+
+  //     if (err.response?.data) {
+  //       const raw = err.response.data;
+  //       try {
+  //         const cleaned = raw.substring(raw.indexOf("{"));
+  //         const parsed = JSON.parse(cleaned);
+
+  //         if (parsed.errors) {
+  //           errorMessage = Object.values(parsed.errors).flat().join(", ");
+  //         } else if (parsed.error) {
+  //           errorMessage = parsed.error;
+  //         }
+  //       } catch (e) {
+  //         errorMessage = raw || errorMessage;
+  //       }
+  //     }
+
+  //     setErrorMessage(errorMessage);
+  //     toast.error(errorMessage);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
-    setLoading(true);
+  e.preventDefault();
+  setErrorMessage("");
+  setSuccessMessage("");
+  setLoading(true);
 
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("Passwords do not match.");
-      setLoading(false);
-      return;
-    }
+  // Frontend validation
+  if (formData.password !== formData.confirmPassword) {
+    setErrorMessage("Passwords do not match.");
+    setLoading(false);
+    return;
+  }
 
-    if (formData.password.length < 6) {
-      setErrorMessage("Password must be at least 6 characters long.");
-      setLoading(false);
-      return;
-    }
+  if (formData.password.length < 6) {
+    setErrorMessage("Password must be at least 6 characters long.");
+    setLoading(false);
+    return;
+  }
 
-    if (!formData.employee_code.trim()) {
-      setErrorMessage("Employee code is required.");
-      setLoading(false);
-      return;
-    }
+  if (!formData.employee_code.trim()) {
+    setErrorMessage("Employee code is required.");
+    setLoading(false);
+    return;
+  }
 
-    const employeeData = {
-      employee_code: formData.employee_code,
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      email: formData.email,
-      password: formData.password,
-      image_url: formData.image_url,
-    };
-
-    try {
-      const res = await apiService.completeEmployeeRegistration(employeeData);
-
-      setSuccessMessage(
-        "Registration successful! Please check your email to verify your account."
-      );
-      toast.success(
-        "Registration completed! Check your email for verification."
-      );
-
-      // Redirect to verification page using token from backend
-      if (res.token) {
-        setTimeout(() => {
-          router.push(`/employees/verify-token?token=${res.token}`);
-        }, 2000);
-      }
-    } catch (err) {
-      console.error("Registration error:", err);
-
-      let errorMessage = "Something went wrong. Please try again later.";
-
-      if (err.response?.data) {
-        const raw = err.response.data;
-        try {
-          const cleaned = raw.substring(raw.indexOf("{"));
-          const parsed = JSON.parse(cleaned);
-
-          if (parsed.errors) {
-            errorMessage = Object.values(parsed.errors).flat().join(", ");
-          } else if (parsed.error) {
-            errorMessage = parsed.error;
-          }
-        } catch (e) {
-          errorMessage = raw || errorMessage;
-        }
-      }
-
-      setErrorMessage(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+  const employeeData = {
+    employee_code: formData.employee_code,
+    first_name: formData.first_name,
+    last_name: formData.last_name,
+    email: formData.email,
+    password: formData.password,
+    image_url: formData.image_url,
   };
+
+  try {
+  const res = await apiService.completeEmployeeRegistration(employeeData);
+  setSuccessMessage(res.message || "Registration completed successfully!");
+  toast.success(res.message || "Check your email to verify your account.");
+} catch (err) {
+  console.error("Registration error:", err);
+
+  let errorMessage = "Something went wrong. Please try again later.";
+
+  if (err.data) {
+    if (err.status === 422 && err.data.errors) {
+      errorMessage = Object.values(err.data.errors).flat().join(", ");
+    } else if ((err.status === 409 || err.status === 404) && err.data.error) {
+      errorMessage = err.data.error;
+    } else if (err.data.message) {
+      errorMessage = err.data.message;
+    }
+  }
+
+  setErrorMessage(errorMessage);
+  toast.error(errorMessage);
+}
+
+ finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

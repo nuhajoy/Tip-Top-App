@@ -25,55 +25,94 @@ class ApiService {
     }
   }
 
+  // async request(endpoint, options = {}) {
+  //   const token = this.getToken();
+
+  //   const config = {
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Accept: "application/json",
+  //       ...options.headers,
+  //     },
+  //     ...options,
+  //   };
+
+  //   if (token) {
+  //     config.headers.Authorization = `Bearer ${token}`;
+  //   }
+
+  //   const response = await fetch(`${this.baseURL}${endpoint}`, config);
+  //   const rawText = await response.text();
+
+  //   let data;
+  //   try {
+  //     let jsonText = rawText;
+  //     const jsonStart = rawText.indexOf("[");
+  //     const objectStart = rawText.indexOf("{");
+
+  //     if (jsonStart !== -1 && (objectStart === -1 || jsonStart < objectStart)) {
+  //       const jsonEnd = rawText.lastIndexOf("]");
+  //       if (jsonEnd !== -1 && jsonEnd > jsonStart) {
+  //         jsonText = rawText.substring(jsonStart, jsonEnd + 1);
+  //       }
+  //     } else if (objectStart !== -1) {
+  //       const jsonEnd = rawText.lastIndexOf("}");
+  //       if (jsonEnd !== -1 && jsonEnd > objectStart) {
+  //         jsonText = rawText.substring(objectStart, jsonEnd + 1);
+  //       }
+  //     }
+
+  //     data = JSON.parse(jsonText);
+  //   } catch (e) {
+  //     console.error("Invalid JSON response:", rawText);
+  //     throw new Error(`Invalid JSON response: ${rawText.substring(0, 200)}...`);
+  //   }
+
+  //   if (!response.ok) {
+  //     throw new Error(data.error || `Error ${response.status}`);
+  //   }
+
+  //   return data;
+  // }
+
   async request(endpoint, options = {}) {
-    const token = this.getToken();
+  const token = this.getToken();
 
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        ...options.headers,
-      },
-      ...options,
-    };
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...options.headers,
+    },
+    ...options,
+  };
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${this.baseURL}${endpoint}`, config);
-    const rawText = await response.text();
-
-    let data;
-    try {
-      let jsonText = rawText;
-      const jsonStart = rawText.indexOf("[");
-      const objectStart = rawText.indexOf("{");
-
-      if (jsonStart !== -1 && (objectStart === -1 || jsonStart < objectStart)) {
-        const jsonEnd = rawText.lastIndexOf("]");
-        if (jsonEnd !== -1 && jsonEnd > jsonStart) {
-          jsonText = rawText.substring(jsonStart, jsonEnd + 1);
-        }
-      } else if (objectStart !== -1) {
-        const jsonEnd = rawText.lastIndexOf("}");
-        if (jsonEnd !== -1 && jsonEnd > objectStart) {
-          jsonText = rawText.substring(objectStart, jsonEnd + 1);
-        }
-      }
-
-      data = JSON.parse(jsonText);
-    } catch (e) {
-      console.error("Invalid JSON response:", rawText);
-      throw new Error(`Invalid JSON response: ${rawText.substring(0, 200)}...`);
-    }
-
-    if (!response.ok) {
-      throw new Error(data.error || `Error ${response.status}`);
-    }
-
-    return data;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+
+  const response = await fetch(`${this.baseURL}${endpoint}`, config);
+
+  let data;
+  try {
+    data = await response.json(); // safer than manual substring parsing
+  } catch {
+    // fallback if response is not valid JSON
+    const text = await response.text();
+    data = { message: text };
+  }
+
+  if (!response.ok) {
+    // throw a structured error instead of string
+    const error = new Error("Request failed");
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+
+  return data;
+}
+
 
   // ----------------------------
   // Unified login
