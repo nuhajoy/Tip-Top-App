@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Upload, CheckCircle, XCircle } from "lucide-react";
@@ -35,30 +41,28 @@ export default function SignupPage() {
     license: null,
   });
 
-useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const res = await axios.get("http://127.0.0.1:8000/api/categories", { 
-        responseType: "text" 
-      });
-      
-      const raw = res.data;
-      const cleaned = raw.substring(raw.indexOf("["));
-      const parsed = JSON.parse(cleaned);
-      
-      setCategories(parsed);
-    } catch (err) {
-      console.error("Failed to fetch categories:", err);
-      setErrorMessage("Unable to load categories. Please try again later.");
-    } finally {
-      setCategoriesLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get("http://127.0.0.1:8000/api/categories", {
+          responseType: "text",
+        });
 
-  fetchCategories();
-}, []);
+        const raw = res.data;
+        const cleaned = raw.substring(raw.indexOf("["));
+        const parsed = JSON.parse(cleaned);
 
+        setCategories(parsed);
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
+        setErrorMessage("Unable to load categories. Please try again later.");
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
 
+    fetchCategories();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -102,7 +106,9 @@ useEffect(() => {
     // Phone validation (Ethiopian format)
     const phoneRegex = /^\+251(9|7)[0-9]{8}$/;
     if (!phoneRegex.test(formData.contact_phone)) {
-      setErrorMessage("Phone number must be in format +2519xxxxxxxx or +2517xxxxxxxx");
+      setErrorMessage(
+        "Phone number must be in format +2519xxxxxxxx or +2517xxxxxxxx"
+      );
       setLoading(false);
       return;
     }
@@ -134,26 +140,30 @@ useEffect(() => {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      setSuccessMessage("Registration successful! Please check your email to verify your account.");
-      toast.success("Registration completed! Check your email for verification.");
-      
+      setSuccessMessage(
+        "Registration successful! Please check your email to verify your account."
+      );
+      toast.success(
+        "Registration completed! Check your email for verification."
+      );
+
       // Redirect to verification page after a short delay
       setTimeout(() => {
-        // After registration, redirect to unified verification page
-        router.push(`/auth/verify?token=${res.verification_token}`);
+        router.push(
+          `/api/service-provider/verify-token?token=${user.verification_token}`
+        );
       }, 2000);
-
     } catch (err) {
       console.error("Registration error:", err);
 
       let errorMessage = "Something went wrong. Please try again later.";
-      
+
       if (err.response?.data) {
         const raw = err.response.data;
         try {
           const cleaned = raw.substring(raw.indexOf("{"));
           const parsed = JSON.parse(cleaned);
-          
+
           if (parsed.errors) {
             errorMessage = Object.values(parsed.errors).flat().join(", ");
           } else if (parsed.error) {
@@ -175,7 +185,9 @@ useEffect(() => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Service Provider Registration</CardTitle>
+          <CardTitle className="text-3xl font-bold">
+            Service Provider Registration
+          </CardTitle>
           <CardDescription>
             Join TipTop and start receiving digital tips for your business
           </CardDescription>
@@ -201,7 +213,7 @@ useEffect(() => {
             {/* Business Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Business Information</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Business Name *</Label>
@@ -282,7 +294,7 @@ useEffect(() => {
             {/* Contact Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Contact Information</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address *</Label>
@@ -307,7 +319,9 @@ useEffect(() => {
                     value={formData.contact_phone}
                     required
                   />
-                  <p className="text-xs text-gray-500">Format: +2519xxxxxxxx or +2517xxxxxxxx</p>
+                  <p className="text-xs text-gray-500">
+                    Format: +2519xxxxxxxx or +2517xxxxxxxx
+                  </p>
                 </div>
               </div>
             </div>
@@ -315,7 +329,7 @@ useEffect(() => {
             {/* Address Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Business Address</h3>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="street_address">Street Address *</Label>
                 <Input
@@ -358,7 +372,7 @@ useEffect(() => {
             {/* Security */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Account Security</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">Password *</Label>
@@ -391,7 +405,7 @@ useEffect(() => {
             {/* License Upload */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Business License</h3>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="license">Upload License Document *</Label>
                 <div className="flex items-center space-x-2">

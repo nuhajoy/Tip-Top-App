@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Toaster, toast } from "sonner";
@@ -82,8 +88,7 @@ export default function EmployeeSignupPage() {
       // Redirect to verification page using token from backend
       if (res.token) {
         setTimeout(() => {
-          // After registration, redirect to unified verification page
-          router.push(`/auth/verify?token=${res.token}`);
+          router.push(`/employees/verify-token?token=${res.token}`);
         }, 2000);
       }
     } catch (err) {
@@ -118,7 +123,9 @@ export default function EmployeeSignupPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Employee Registration</CardTitle>
+          <CardTitle className="text-3xl font-bold">
+            Employee Registration
+          </CardTitle>
           <CardDescription>
             Complete your employee profile to start receiving tips
           </CardDescription>
@@ -269,4 +276,3 @@ export default function EmployeeSignupPage() {
     </div>
   );
 }
-

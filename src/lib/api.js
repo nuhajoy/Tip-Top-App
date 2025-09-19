@@ -215,7 +215,6 @@ class ApiService {
     return this.request("/employee/profile");
   }
 
-  
   completeEmployeeRegistration(employeeData) {
     return this.request("/employees/register", {
       method: "POST",
