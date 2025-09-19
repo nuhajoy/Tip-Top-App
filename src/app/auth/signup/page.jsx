@@ -139,11 +139,8 @@ useEffect(() => {
       
       // Redirect to verification page after a short delay
       setTimeout(() => {
-       router.push(
-         `/api/service-provider/verify-token?token=${user.verification_token}`
-       );
-
-
+        // After registration, redirect to unified verification page
+        router.push(`/auth/verify?token=${res.verification_token}`);
       }, 2000);
 
     } catch (err) {

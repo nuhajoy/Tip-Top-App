@@ -82,7 +82,8 @@ export default function EmployeeSignupPage() {
       // Redirect to verification page using token from backend
       if (res.token) {
         setTimeout(() => {
-          router.push(`/employees/verify-token?token=${res.token}`);
+          // After registration, redirect to unified verification page
+          router.push(`/auth/verify?token=${res.token}`);
         }, 2000);
       }
     } catch (err) {
